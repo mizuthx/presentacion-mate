@@ -1,0 +1,430 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Algoritmo de Colonia de Hormigas (ACO) - Visualización</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            padding: 20px;
+        }
+
+        .container {
+            max-width: 1400px;
+            margin: 0 auto;
+        }
+
+        header {
+            text-align: center;
+            color: white;
+            margin-bottom: 30px;
+        }
+
+        h1 {
+            font-size: 2.5em;
+            margin-bottom: 10px;
+            text-shadow: 2px 2px 4px rgba(0,0,0,0.3);
+        }
+
+        .subtitle {
+            font-size: 1.1em;
+            opacity: 0.9;
+        }
+
+        .main-content {
+            display: grid;
+            grid-template-columns: 1fr 350px;
+            gap: 20px;
+        }
+
+        .canvas-section {
+            background: white;
+            border-radius: 10px;
+            padding: 20px;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.3);
+        }
+
+        #canvas {
+            width: 100%;
+            height: 600px;
+            border: 2px solid #ddd;
+            border-radius: 5px;
+            cursor: crosshair;
+            background: #fafafa;
+        }
+
+        .controls-section {
+            display: flex;
+            flex-direction: column;
+            gap: 20px;
+        }
+
+        .panel {
+            background: white;
+            border-radius: 10px;
+            padding: 20px;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.3);
+        }
+
+        .panel h3 {
+            color: #667eea;
+            margin-bottom: 15px;
+            font-size: 1.2em;
+            border-bottom: 2px solid #667eea;
+            padding-bottom: 10px;
+        }
+
+        .control-group {
+            margin-bottom: 15px;
+        }
+
+        .control-group label {
+            display: block;
+            margin-bottom: 5px;
+            color: #555;
+            font-weight: 500;
+        }
+
+        .control-group input[type="number"],
+        .control-group input[type="range"] {
+            width: 100%;
+            padding: 8px;
+            border: 1px solid #ddd;
+            border-radius: 5px;
+            font-size: 14px;
+        }
+
+        .control-group input[type="range"] {
+            padding: 0;
+        }
+
+        .range-value {
+            display: inline-block;
+            background: #667eea;
+            color: white;
+            padding: 2px 8px;
+            border-radius: 3px;
+            font-size: 12px;
+            margin-left: 10px;
+        }
+
+        button {
+            width: 100%;
+            padding: 12px;
+            border: none;
+            border-radius: 5px;
+            font-size: 16px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s;
+            margin-bottom: 10px;
+        }
+
+        .btn-primary {
+            background: #667eea;
+            color: white;
+        }
+
+        .btn-primary:hover {
+            background: #5568d3;
+            transform: translateY(-2px);
+            box-shadow: 0 5px 15px rgba(102, 126, 234, 0.4);
+        }
+
+        .btn-secondary {
+            background: #48c774;
+            color: white;
+        }
+
+        .btn-secondary:hover {
+            background: #3abb67;
+        }
+
+        .btn-warning {
+            background: #ffdd57;
+            color: #333;
+        }
+
+        .btn-warning:hover {
+            background: #ffd83d;
+        }
+
+        .btn-danger {
+            background: #f14668;
+            color: white;
+        }
+
+        .btn-danger:hover {
+            background: #ee395b;
+        }
+
+        .btn-info {
+            background: #3298dc;
+            color: white;
+        }
+
+        .btn-info:hover {
+            background: #2489ce;
+        }
+
+        button:disabled {
+            opacity: 0.5;
+            cursor: not-allowed;
+        }
+
+        .stats {
+            font-size: 14px;
+        }
+
+        .stat-item {
+            padding: 8px 0;
+            border-bottom: 1px solid #eee;
+        }
+
+        .stat-item:last-child {
+            border-bottom: none;
+        }
+
+        .stat-item strong {
+            color: #667eea;
+        }
+
+        .info-box {
+            background: #e8f4f8;
+            border-left: 4px solid #3298dc;
+            padding: 15px;
+            border-radius: 5px;
+            font-size: 14px;
+            line-height: 1.6;
+        }
+
+        .info-box h4 {
+            color: #3298dc;
+            margin-bottom: 8px;
+        }
+
+        .info-box ul {
+            margin-left: 20px;
+            margin-top: 8px;
+        }
+
+        .info-box li {
+            margin-bottom: 5px;
+        }
+
+        @media (max-width: 1024px) {
+            .main-content {
+                grid-template-columns: 1fr;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <header>
+            <h1>🐜 Algoritmo de Colonia de Hormigas</h1>
+            <p class="subtitle">Ant Colony Optimization (ACO) - Problema del Viajante (TSP)</p>
+        </header>
+
+        <div class="main-content">
+            <!-- Canvas Section -->
+            <div class="canvas-section">
+                <canvas id="canvas"></canvas>
+            </div>
+
+            <!-- Controls Section -->
+            <div class="controls-section">
+                <!-- Setup Panel -->
+                <div class="panel">
+                    <h3>⚙️ Configuración</h3>
+
+                    <div class="control-group">
+                        <label for="numCities">Número de Ciudades:</label>
+                        <input type="number" id="numCities" value="15" min="3" max="50">
+                    </div>
+
+                    <button class="btn-secondary" onclick="app.generateCities()">
+                        🎲 Generar Aleatorio
+                    </button>
+
+                    <button class="btn-danger" onclick="app.clear()">
+                        🗑️ Limpiar Todo
+                    </button>
+                </div>
+
+                <!-- Algorithm Parameters Panel -->
+                <div class="panel">
+                    <h3>🔧 Parámetros del Algoritmo</h3>
+
+                    <div class="control-group">
+                        <label for="numAnts">
+                            Número de Hormigas:
+                            <span class="range-value" id="numAntsValue">50</span>
+                        </label>
+                        <input type="range" id="numAnts" min="10" max="100" value="50"
+                               oninput="document.getElementById('numAntsValue').textContent = this.value">
+                    </div>
+
+                    <div class="control-group">
+                        <label for="numIterations">
+                            Iteraciones:
+                            <span class="range-value" id="numIterationsValue">100</span>
+                        </label>
+                        <input type="range" id="numIterations" min="10" max="300" value="100"
+                               oninput="document.getElementById('numIterationsValue').textContent = this.value">
+                    </div>
+
+                    <div class="control-group">
+                        <label for="alpha">
+                            Alpha (α) - Peso de Feromonas:
+                            <span class="range-value" id="alphaValue">1.0</span>
+                        </label>
+                        <input type="range" id="alpha" min="0" max="5" step="0.1" value="1.0"
+                               oninput="document.getElementById('alphaValue').textContent = this.value">
+                    </div>
+
+                    <div class="control-group">
+                        <label for="beta">
+                            Beta (β) - Peso de Distancia:
+                            <span class="range-value" id="betaValue">5.0</span>
+                        </label>
+                        <input type="range" id="beta" min="0" max="10" step="0.1" value="5.0"
+                               oninput="document.getElementById('betaValue').textContent = this.value">
+                    </div>
+
+                    <div class="control-group">
+                        <label for="evaporation">
+                            Evaporación:
+                            <span class="range-value" id="evaporationValue">0.5</span>
+                        </label>
+                        <input type="range" id="evaporation" min="0" max="1" step="0.05" value="0.5"
+                               oninput="document.getElementById('evaporationValue').textContent = this.value">
+                    </div>
+
+                    <div class="control-group">
+                        <label for="speed">
+                            Velocidad de Animación (ms):
+                            <span class="range-value" id="speedValue">100</span>
+                        </label>
+                        <input type="range" id="speed" min="10" max="500" step="10" value="100"
+                               oninput="app.setSpeed(this.value); document.getElementById('speedValue').textContent = this.value">
+                    </div>
+                </div>
+
+                <!-- Control Buttons Panel -->
+                <div class="panel">
+                    <h3>▶️ Control</h3>
+
+                    <button class="btn-primary" id="startBtn" onclick="app.start()">
+                        ▶️ Iniciar
+                    </button>
+
+                    <button class="btn-warning" id="pauseBtn" onclick="app.togglePause()" disabled>
+                        ⏸️ Pausar
+                    </button>
+
+                    <button class="btn-danger" id="stopBtn" onclick="app.stop()" disabled>
+                        ⏹️ Detener
+                    </button>
+                </div>
+
+                <!-- Stats Panel -->
+                <div class="panel">
+                    <h3>📊 Estadísticas</h3>
+                    <div id="stats" class="stats">
+                        <div class="stat-item"><strong>Ciudades:</strong> 0</div>
+                    </div>
+                </div>
+
+                <!-- Info Panel -->
+                <div class="panel">
+                    <div class="info-box">
+                        <h4>ℹ️ Cómo usar:</h4>
+                        <ul>
+                            <li>Haz click en el canvas para agregar ciudades</li>
+                            <li>O genera ciudades aleatorias</li>
+                            <li>Ajusta los parámetros del algoritmo</li>
+                            <li>Presiona "Iniciar" para ejecutar</li>
+                            <li>La línea verde es la mejor ruta encontrada</li>
+                            <li>Las líneas moradas son las feromonas</li>
+                        </ul>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script src="aco.js"></script>
+    <script src="visualization.js"></script>
+    <script>
+        // Aplicación principal
+        const app = {
+            viz: null,
+
+            init() {
+                this.viz = new ACOVisualization('canvas', 'stats');
+            },
+
+            generateCities() {
+                const numCities = parseInt(document.getElementById('numCities').value);
+                this.viz.generateRandomCities(numCities);
+            },
+
+            clear() {
+                this.viz.clear();
+                this.updateButtons(false);
+            },
+
+            async start() {
+                const options = {
+                    numAnts: parseInt(document.getElementById('numAnts').value),
+                    numIterations: parseInt(document.getElementById('numIterations').value),
+                    alpha: parseFloat(document.getElementById('alpha').value),
+                    beta: parseFloat(document.getElementById('beta').value),
+                    evaporation: parseFloat(document.getElementById('evaporation').value),
+                    Q: 100
+                };
+
+                this.updateButtons(true);
+                await this.viz.start(options);
+                this.updateButtons(false);
+            },
+
+            togglePause() {
+                this.viz.togglePause();
+                const pauseBtn = document.getElementById('pauseBtn');
+                pauseBtn.textContent = this.viz.isPaused ? '▶️ Reanudar' : '⏸️ Pausar';
+            },
+
+            stop() {
+                this.viz.stop();
+                this.updateButtons(false);
+            },
+
+            setSpeed(speed) {
+                this.viz.setSpeed(parseInt(speed));
+            },
+
+            updateButtons(running) {
+                document.getElementById('startBtn').disabled = running;
+                document.getElementById('pauseBtn').disabled = !running;
+                document.getElementById('stopBtn').disabled = !running;
+            }
+        };
+
+        // Inicializar cuando se cargue la página
+        window.addEventListener('load', () => {
+            app.init();
+        });
+    </script>
+</body>
+</html>

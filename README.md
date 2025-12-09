@@ -3,6 +3,32 @@
 
 ---
 
+## 🚀 Proyectos Prácticos
+
+### 🐜 Algoritmo de Colonia de Hormigas (ACO)
+
+Implementación completa del algoritmo de Colonia de Hormigas con visualización web interactiva para resolver el Problema del Viajante (TSP).
+
+📂 **Ubicación**: `/aco/`
+
+**Características**:
+- Visualización en tiempo real del algoritmo
+- Interfaz interactiva para agregar ciudades
+- Parámetros configurables (hormigas, iteraciones, α, β, evaporación)
+- Gráfica de convergencia
+- Visualización de feromonas y mejor ruta
+
+**Cómo usar**:
+1. Navega a la carpeta `aco/`
+2. Abre `index.html` en tu navegador
+3. Agrega ciudades haciendo click o genera aleatorias
+4. Ajusta los parámetros
+5. Presiona "Iniciar" y observa el algoritmo en acción
+
+📖 **Documentación completa**: [aco/README.md](aco/README.md)
+
+---
+
 ## 📋 Información de la Asignatura
 
 **Código:** ATAN01  

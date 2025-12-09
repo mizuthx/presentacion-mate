@@ -1,7 +1,150 @@
 /**
  * Simulación de Búsqueda de Comida (Foraging Simulation)
- * Agentes simples que buscan comida y se agrupan cuando la encuentran
+ * Agentes simples que buscan comida y se comunican mediante feromonas
  */
+
+class PheromoneMap {
+    constructor(width, height, cellSize = 10) {
+        this.width = width;
+        this.height = height;
+        this.cellSize = cellSize;
+        this.cols = Math.ceil(width / cellSize);
+        this.rows = Math.ceil(height / cellSize);
+
+        // Dos tipos de feromonas
+        this.toFoodPheromone = this.createGrid();   // Hacia la comida
+        this.toHomePheromone = this.createGrid();   // Hacia el nido
+
+        this.evaporationRate = 0.95; // 5% de evaporación por frame
+        this.diffusionRate = 0.05;   // Difusión a celdas vecinas
+    }
+
+    createGrid() {
+        const grid = [];
+        for (let i = 0; i < this.rows; i++) {
+            grid[i] = [];
+            for (let j = 0; j < this.cols; j++) {
+                grid[i][j] = 0;
+            }
+        }
+        return grid;
+    }
+
+    deposit(x, y, amount, type = 'toHome') {
+        const col = Math.floor(x / this.cellSize);
+        const row = Math.floor(y / this.cellSize);
+
+        if (this.isValid(row, col)) {
+            const grid = type === 'toHome' ? this.toHomePheromone : this.toFoodPheromone;
+            grid[row][col] = Math.min(grid[row][col] + amount, 100);
+        }
+    }
+
+    get(x, y, type = 'toHome') {
+        const col = Math.floor(x / this.cellSize);
+        const row = Math.floor(y / this.cellSize);
+
+        if (this.isValid(row, col)) {
+            const grid = type === 'toHome' ? this.toHomePheromone : this.toFoodPheromone;
+            return grid[row][col];
+        }
+        return 0;
+    }
+
+    getGradient(x, y, type = 'toHome') {
+        // Obtener dirección del gradiente de feromonas
+        const grid = type === 'toHome' ? this.toHomePheromone : this.toFoodPheromone;
+        const col = Math.floor(x / this.cellSize);
+        const row = Math.floor(y / this.cellSize);
+
+        let maxPheromone = 0;
+        let bestDx = 0;
+        let bestDy = 0;
+
+        // Revisar 8 vecinos
+        for (let dy = -1; dy <= 1; dy++) {
+            for (let dx = -1; dx <= 1; dx++) {
+                if (dx === 0 && dy === 0) continue;
+
+                const newRow = row + dy;
+                const newCol = col + dx;
+
+                if (this.isValid(newRow, newCol)) {
+                    const pheromone = grid[newRow][newCol];
+                    if (pheromone > maxPheromone) {
+                        maxPheromone = pheromone;
+                        bestDx = dx;
+                        bestDy = dy;
+                    }
+                }
+            }
+        }
+
+        return { dx: bestDx, dy: bestDy, strength: maxPheromone };
+    }
+
+    update() {
+        // Evaporación
+        this.evaporate(this.toFoodPheromone);
+        this.evaporate(this.toHomePheromone);
+
+        // Difusión
+        this.diffuse(this.toFoodPheromone);
+        this.diffuse(this.toHomePheromone);
+    }
+
+    evaporate(grid) {
+        for (let i = 0; i < this.rows; i++) {
+            for (let j = 0; j < this.cols; j++) {
+                grid[i][j] *= this.evaporationRate;
+                if (grid[i][j] < 0.1) grid[i][j] = 0;
+            }
+        }
+    }
+
+    diffuse(grid) {
+        const newGrid = this.createGrid();
+
+        for (let i = 0; i < this.rows; i++) {
+            for (let j = 0; j < this.cols; j++) {
+                let sum = grid[i][j] * (1 - this.diffusionRate);
+                let count = 1;
+
+                // Difundir a vecinos
+                for (let dy = -1; dy <= 1; dy++) {
+                    for (let dx = -1; dx <= 1; dx++) {
+                        if (dx === 0 && dy === 0) continue;
+
+                        const newRow = i + dy;
+                        const newCol = j + dx;
+
+                        if (this.isValid(newRow, newCol)) {
+                            sum += grid[newRow][newCol] * (this.diffusionRate / 8);
+                        }
+                    }
+                }
+
+                newGrid[i][j] = sum;
+            }
+        }
+
+        // Copiar de vuelta
+        for (let i = 0; i < this.rows; i++) {
+            for (let j = 0; j < this.cols; j++) {
+                grid[i][j] = newGrid[i][j];
+            }
+        }
+    }
+
+    isValid(row, col) {
+        return row >= 0 && row < this.rows && col >= 0 && col < this.cols;
+    }
+
+    clear() {
+        this.toFoodPheromone = this.createGrid();
+        this.toHomePheromone = this.createGrid();
+    }
+}
 
 class Agent {
     constructor(x, y, world) {
@@ -26,7 +169,9 @@ class Agent {
 
         // Parámetros de comportamiento
         this.senseRadius = 80;
+        this.pheromoneRadius = 50;
         this.wanderStrength = 0.3;
+        this.pheromoneInfluence = 0.7; // Qué tanto siguen las feromonas
     }
 
     update() {
@@ -39,8 +184,9 @@ class Agent {
         }
 
         if (this.hasFood) {
-            // Regresar al nido
+            // Regresar al nido y depositar feromonas
             this.moveTowardsHome();
+            this.depositPheromone('toHome');
         } else {
             // Buscar comida
             this.searchForFood();
@@ -73,9 +219,44 @@ class Agent {
                 }
             }
         } else {
-            // Movimiento aleatorio (random walk con wandering)
+            // Intentar seguir feromonas hacia comida
+            if (this.world.usePheromones) {
+                this.followPheromones('toFood');
+            } else {
+                // Movimiento aleatorio (random walk con wandering)
+                this.wander();
+            }
+        }
+    }
+
+    followPheromones(type) {
+        const gradient = this.world.pheromoneMap.getGradient(this.x, this.y, type);
+
+        if (gradient.strength > 5) { // Umbral mínimo
+            // Combinar seguimiento de feromonas con exploración
+            const pheromoneAngle = Math.atan2(gradient.dy, gradient.dx);
+
+            // Mezclar con wandering para no ser demasiado determinista
+            this.wanderAngle += (Math.random() - 0.5) * this.wanderStrength;
+
+            const targetAngle = pheromoneAngle * this.pheromoneInfluence +
+                              this.wanderAngle * (1 - this.pheromoneInfluence);
+
+            const targetVx = Math.cos(targetAngle) * this.speed;
+            const targetVy = Math.sin(targetAngle) * this.speed;
+
+            // Suavizar el movimiento
+            this.vx += (targetVx - this.vx) * 0.2;
+            this.vy += (targetVy - this.vy) * 0.2;
+        } else {
+            // No hay feromonas suficientes, moverse aleatoriamente
             this.wander();
         }
+    }
+
+    depositPheromone(type) {
+        const amount = 5; // Cantidad de feromona a depositar
+        this.world.pheromoneMap.deposit(this.x, this.y, amount, type);
     }
 
     moveTowardsHome() {
@@ -134,6 +315,11 @@ class Agent {
                     closestDist = dist;
                 }
             }
+        }
+
+        // Si encuentra comida, depositar feromona hacia ella
+        if (closest && this.world.usePheromones) {
+            this.depositPheromone('toFood');
         }
 
         return closest;
@@ -216,6 +402,11 @@ class ForagingWorld {
         this.agents = [];
         this.foodSources = [];
 
+        // Sistema de feromonas
+        this.pheromoneMap = new PheromoneMap(width, height, 10);
+        this.usePheromones = true;
+        this.showPheromones = true;
+
         // Estadísticas
         this.foodInNest = 0;
         this.totalFoodCollected = 0;
@@ -249,6 +440,11 @@ class ForagingWorld {
     }
 
     update() {
+        // Actualizar mapa de feromonas
+        if (this.usePheromones) {
+            this.pheromoneMap.update();
+        }
+
         // Actualizar agentes
         for (const agent of this.agents) {
             if (agent.isAlive()) {
@@ -308,5 +504,6 @@ class ForagingWorld {
         this.foodSources = [];
         this.foodInNest = 0;
         this.trails = [];
+        this.pheromoneMap.clear();
     }
 }

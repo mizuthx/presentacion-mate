@@ -116,6 +116,11 @@ class ForagingVisualization {
         this.ctx.fillStyle = '#1a1a2e';
         this.ctx.fillRect(0, 0, this.canvas.width, this.canvas.height);
 
+        // Dibujar feromonas si está activado
+        if (this.world.showPheromones && this.world.usePheromones) {
+            this.drawPheromones();
+        }
+
         // Dibujar trails si está activado
         if (this.world.showTrails) {
             this.drawTrails();
@@ -272,6 +277,41 @@ class ForagingVisualization {
         }
     }
 
+    drawPheromones() {
+        const map = this.world.pheromoneMap;
+        const cellSize = map.cellSize;
+
+        // Dibujar feromonas de regreso al nido (verde)
+        for (let i = 0; i < map.rows; i++) {
+            for (let j = 0; j < map.cols; j++) {
+                const level = map.toHomePheromone[i][j];
+                if (level > 0.5) {
+                    const x = j * cellSize;
+                    const y = i * cellSize;
+                    const alpha = Math.min(level / 100, 0.6);
+
+                    this.ctx.fillStyle = `rgba(46, 204, 113, ${alpha})`;
+                    this.ctx.fillRect(x, y, cellSize, cellSize);
+                }
+            }
+        }
+
+        // Dibujar feromonas hacia comida (azul)
+        for (let i = 0; i < map.rows; i++) {
+            for (let j = 0; j < map.cols; j++) {
+                const level = map.toFoodPheromone[i][j];
+                if (level > 0.5) {
+                    const x = j * cellSize;
+                    const y = i * cellSize;
+                    const alpha = Math.min(level / 100, 0.6);
+
+                    this.ctx.fillStyle = `rgba(52, 152, 219, ${alpha})`;
+                    this.ctx.fillRect(x, y, cellSize, cellSize);
+                }
+            }
+        }
+    }
+
     drawTrails() {
         for (const trail of this.world.trails) {
             this.ctx.fillStyle = `rgba(155, 89, 182, ${trail.alpha * 0.3})`;
@@ -323,5 +363,16 @@ class ForagingVisualization {
         if (!this.world.showTrails) {
             this.world.trails = [];
         }
+    }
+
+    togglePheromones() {
+        this.world.usePheromones = !this.world.usePheromones;
+        if (!this.world.usePheromones) {
+            this.world.pheromoneMap.clear();
+        }
+    }
+
+    toggleShowPheromones() {
+        this.world.showPheromones = !this.world.showPheromones;
     }
 }

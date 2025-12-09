@@ -380,6 +380,16 @@
                     <h3>👁️ Opciones Visuales</h3>
 
                     <div class="checkbox-group">
+                        <input type="checkbox" id="usePheromones" checked onchange="app.togglePheromones()">
+                        <label for="usePheromones">✨ Usar Feromonas (Comunicación)</label>
+                    </div>
+
+                    <div class="checkbox-group">
+                        <input type="checkbox" id="showPheromones" checked onchange="app.toggleShowPheromones()">
+                        <label for="showPheromones">🟢 Visualizar Feromonas</label>
+                    </div>
+
+                    <div class="checkbox-group">
                         <input type="checkbox" id="showSenseRadius" onchange="app.toggleSenseRadius()">
                         <label for="showSenseRadius">Mostrar Radio de Sensado</label>
                     </div>
@@ -407,7 +417,7 @@
                     <div class="legend">
                         <div class="legend-item">
                             <div class="legend-color" style="background: #2ecc71;"></div>
-                            Nido (Hogar)
+                            Nido / Feromona al nido
                         </div>
                         <div class="legend-item">
                             <div class="legend-color" style="background: #f1c40f;"></div>
@@ -415,7 +425,7 @@
                         </div>
                         <div class="legend-item">
                             <div class="legend-color" style="background: #3498db;"></div>
-                            Agente (energía)
+                            Agente / Feromona comida
                         </div>
                         <div class="legend-item">
                             <div class="legend-color" style="background: #e67e22;"></div>
@@ -439,9 +449,10 @@
                         <ul style="margin-left: 20px; margin-top: 8px;">
                             <li style="margin-bottom: 5px;">Los agentes se mueven aleatoriamente buscando comida</li>
                             <li style="margin-bottom: 5px;">Cuando detectan comida, se mueven hacia ella</li>
-                            <li style="margin-bottom: 5px;">Llevan la comida de vuelta al nido</li>
+                            <li style="margin-bottom: 5px;">✨ <strong>Depositan feromonas</strong> al llevar comida al nido</li>
+                            <li style="margin-bottom: 5px;">👃 Otros agentes <strong>siguen las feromonas</strong> para encontrar comida</li>
                             <li style="margin-bottom: 5px;">Consumen energía y deben regresar al nido</li>
-                            <li style="margin-bottom: 5px;">¡Observa cómo se agrupan alrededor de la comida!</li>
+                            <li style="margin-bottom: 5px;">¡Observa cómo forman caminos con feromonas!</li>
                         </ul>
                     </div>
                 </div>
@@ -527,6 +538,18 @@
             toggleTrails() {
                 if (this.viz) {
                     this.viz.toggleTrails();
+                }
+            },
+
+            togglePheromones() {
+                if (this.viz) {
+                    this.viz.togglePheromones();
+                }
+            },
+
+            toggleShowPheromones() {
+                if (this.viz) {
+                    this.viz.toggleShowPheromones();
                 }
             },
 

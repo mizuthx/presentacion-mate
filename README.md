@@ -29,6 +29,30 @@ Implementación completa del algoritmo de Colonia de Hormigas con visualización
 
 ---
 
+### 🐜 Simulación de Búsqueda de Comida (Foraging)
+
+Simulación interactiva de agentes que buscan comida y la llevan de vuelta al nido, demostrando comportamiento colectivo emergente.
+
+📂 **Ubicación**: `/foraging/`
+
+**Características**:
+- Agentes autónomos con sistema de energía
+- Comportamiento emergente de búsqueda y recolección
+- Visualización en tiempo real del movimiento
+- Radio de sensado y rastros opcionales
+- Estadísticas detalladas de la simulación
+
+**Cómo usar**:
+1. Navega a la carpeta `foraging/`
+2. Abre `index.html` en tu navegador
+3. Presiona "Inicializar" y "Generar Comida Aleatoria"
+4. Presiona "Iniciar" y observa a los agentes trabajar
+5. Agrega comida o agentes manualmente haciendo click
+
+📖 **Documentación completa**: [foraging/README.md](foraging/README.md)
+
+---
+
 ## 📋 Información de la Asignatura
 
 **Código:** ATAN01  
